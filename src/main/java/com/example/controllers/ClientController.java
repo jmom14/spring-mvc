@@ -2,6 +2,7 @@ package com.example.controllers;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -38,25 +40,31 @@ import com.example.util.paginator.PageRender;
 @Controller
 @SessionAttributes("client")
 public class ClientController {
-	
+
 	@Autowired
 	private IClientService clientService;
 
 	@Autowired
 	private IUploadFileService uploadFileService;
-	
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	@GetMapping(value = {"/list" , "/"})
+	@GetMapping(value = { "/list", "/" })
 	public String list(@RequestParam(value = "page", defaultValue = "0") int page, Model model, Authentication auth) {
-		
-		Authentication auth1 = SecurityContextHolder.getContext().getAuthentication();	
-		
-		if(auth != null) {
+
+		Authentication auth1 = SecurityContextHolder.getContext().getAuthentication();
+
+		if (auth != null) {
 			logger.info("Hi, ".concat(auth.getName()).concat("!"));
 		}
-			
-		//Pageable pageable = new PageRequest(page, 5);
+		
+		if(hasRole("ROLE_ADMIN")) {
+			logger.info("You " + auth.getName().concat(" have access!"));
+		}else {
+			logger.info("You " + auth1.getName().concat(" dont have access!"));
+		}
+
+		// Pageable pageable = new PageRequest(page, 5);
 		Pageable pageable = PageRequest.of(page, 4);
 		Page<Client> clients = clientService.findAll(pageable);
 
@@ -79,12 +87,12 @@ public class ClientController {
 	@PostMapping(value = "/form")
 	public String save(@Valid Client client, @RequestParam(value = "file") MultipartFile photo, BindingResult result,
 			Model model, RedirectAttributes flash, SessionStatus status) {
-		
+
 		model.addAttribute("title", "Clients List");
 		if (result.hasErrors()) {
 			return "form";
 		}
-		
+
 		if (!photo.isEmpty()) {
 			if (client.getId() != null && client.getId() > 0 && client.getPhoto() != null
 					&& client.getPhoto().length() > 0) {
@@ -173,8 +181,30 @@ public class ClientController {
 		}
 		return "redirect:/list";
 	}
-	
-	private boolean hasRole() {
-		SecurityContext context = SecurityContextHolder.getContext(); 
+
+	private boolean hasRole(String role) {
+		SecurityContext context = SecurityContextHolder.getContext();
+
+		if (context == null) {
+			return false;
+		}
+
+		Authentication auth = context.getAuthentication();
+
+		if (auth == null) {
+			return false;
+		}
+
+		Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+		
+		for (GrantedAuthority a : authorities) {
+			if (role.equals(a.getAuthority())) {
+				logger.info("Tu rol es: ".concat(a.getAuthority()));
+				return true;
+			}
+
+		}
+		return false;
+
 	}
 }
