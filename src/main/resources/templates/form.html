@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymleaf.org">
+<head th:replace="layout/layout :: head">
+</head>
+<body>
+
+	<header th:replace="layout/layout :: header"> </header>
+
+	<div class="container py-4">
+		<div class="card bg-light">
+			<div class="card-header" th:text="${title}"></div>
+			<div class="card-body">
+
+				<h1 th:text="${title}" class="font-weight-light"></h1>
+
+				<br />
+
+				<div th:object="${client}" th:remove="tag">
+					<ul th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
+						<li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+					</ul>
+
+				</div>
+				<form th:action="@{/form}" th:object="${client}" method="post" enctype="multipart/form-data">
+					<div class="form-row">												
+
+						<div class="form-group col-md-8">
+							<input type="text" th:field="*{name}" class="form-control form-control-sm" placeholder="Name" />
+						</div>
+
+						<div class="form-group col-md-8">
+							<input type="text" th:field="*{lastName}" class="form-control form-control-sm" placeholder="Last Name" />
+						</div>
+
+						<div class="form-group col-md-8">
+							<input type="text" th:field="*{email}" class="form-control form-control-sm" placeholder="Email" /> 
+							<small class="form-text text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+						</div>
+
+						<div class="form-group col-md-8">
+							<input type="text" th:field="*{createAt}" class="form-control form-control-sm" placeholder="Date" />
+						</div>
+						
+						<div class="form-group col-md-8">
+							<input type="file" name="file" class="form-control form-control-sm"/>
+						</div>
+
+						<div class="form-group col-md-8">
+							<input type="submit" value="Create client" class="btn btn-primary" />
+						</div>
+
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="layout/layout :: footer"></footer>
+
+</body>
+</html>

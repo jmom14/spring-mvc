@@ -1,0 +1,53 @@
+			<!DOCTYPE html>
+<html xmlns:th="http://www.thymleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="layout/layout :: head" />
+<body>
+
+	<header th:replace="layout/layout :: header"> </header>
+
+	<div class="container py-4">
+		<div class="card bg-light">
+			<div class="card-header" th:text="${title}"></div>
+			<div class="card-body">
+
+				<img th:if="${client.photo != null and #strings.length(client.photo) > 0}" class="img-thumbnail rounded float-left" style="max-width: 25%"
+					th:src="@{'/uploads/' + ${client.photo}}" th:alt="${client.photo}" />
+
+				<ul class="list-group">
+					<li class="list-group-item" th:text="${client.name}"></li>
+					<li class="list-group-item" th:text="${client.lastName}"></li>
+					<li class="list-group-item" th:text="${client.email}"></li>
+					<li class="list-group-item" th:text="${client.createAt}"></li>
+				</ul>
+<div th:if="${#lists.isEmpty(client.invoices)}" class="alert alert-info my-4" th:text="'There is no invoices for the client ' + ${client.name} + ' ' + ${client.lastName}"></div>
+				<table th:if="${not #lists.isEmpty(client.invoices)}" class="table table-bordered table-stripped	my-4">
+					<thead class="thead-inverse">
+						<tr>
+							<th>Folio</th>
+							<th>Description</th>
+							<th>Date</th>
+							<th>Total</th>
+							<th sec:authorize="hasRole('ROLE_ADMIN')">View</th>
+							<th sec:authorize="hasRole('ROLE_ADMIN')">Delete</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="invoice : ${client.invoices}">
+							<td th:text="${invoice.id}"></td>
+							<td th:text="${invoice.description}"></td>
+							<td th:text="${invoice.createAt}"></td>
+							<td th:text="${invoice.total}"></td>
+							<td sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{'/invoice/view/' + ${invoice.id}}" th:text="'Detail'" class="btn btn-primary btn-xs"></a></td>
+							<td sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{'/invoice/delete/' + ${invoice.id}}" th:text="'Delete'" class="btn btn-danger btn-xs"
+							onclick="return confirm('Are you sure you want to delete the invoice?')"></a></td>
+						</tr>
+					</tbody>
+				</table>
+				
+				
+			</div>
+		</div>
+	</div>
+</body>
+</html>
