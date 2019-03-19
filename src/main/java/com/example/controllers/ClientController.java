@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.logging.Log;
@@ -16,10 +17,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestWrapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -50,32 +55,50 @@ public class ClientController {
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	@GetMapping(value = { "/list", "/" })
-	public String list(@RequestParam(value = "page", defaultValue = "0") int page, Model model, Authentication auth) {
+	public String list(@RequestParam(value = "page", defaultValue = "0") int page, Model model, Authentication auth,
+			HttpServletRequest request) {
 
 		Authentication auth1 = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth != null) {
-			logger.info("Hi, ".concat(auth.getName()).concat("!"));
+			logger.info("Hi, user authenticated ".concat(auth.getName()).concat(" !"));
 		}
 		
 		if(hasRole("ROLE_ADMIN")) {
-			logger.info("You " + auth.getName().concat(" have access!"));
+			logger.info("You " + auth1.getName().concat(" have access!"));
 		}else {
 			logger.info("You " + auth1.getName().concat(" dont have access!"));
 		}
-
+		
+		SecurityContextHolderAwareRequestWrapper securityContext = new SecurityContextHolderAwareRequestWrapper(request, "ROLE_");
+		
+		if(securityContext.isUserInRole("ADMIN")) {
+			logger.info("SecurityContextHolderAwareRequestWrapper: " + auth1.getName().concat(" have access!"));
+		}else {
+			logger.info("SecurityContextHolderAwareRequestWrapper: " + auth1.getName().concat(" dont have access!"));
+		}
+		
+		if(request.isUserInRole("ROLE_ADMIN")) {
+			logger.info("HttpServletRequest: " + auth1.getName().concat(" have access!"));
+		}else {
+			logger.info("HttpServletRequest: " + auth1.getName().concat(" dont have access!"));
+		}
+		
+		
 		// Pageable pageable = new PageRequest(page, 5);
 		Pageable pageable = PageRequest.of(page, 4);
 		Page<Client> clients = clientService.findAll(pageable);
 
 		PageRender<Client> pageRender = new PageRender<>("/list", clients);
 
+		
 		model.addAttribute("title", "Clients List");
 		model.addAttribute("clients", clients);
 		model.addAttribute("page", pageRender);
 		return "list";
 	}
 
+	@Secured("ROLE_ADMIN")
 	@GetMapping(value = "/form")
 	public String create(Map<String, Object> map) {
 		Client client = new Client();
@@ -84,6 +107,7 @@ public class ClientController {
 		return "form";
 	}
 
+	@Secured("ROLE_ADMIN")
 	@PostMapping(value = "/form")
 	public String save(@Valid Client client, @RequestParam(value = "file") MultipartFile photo, BindingResult result,
 			Model model, RedirectAttributes flash, SessionStatus status) {
@@ -117,6 +141,8 @@ public class ClientController {
 		return "redirect:list";
 	}
 
+	//@Secured("ROLE_ADMIN")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping(value = "/form/{id}")
 	public String edit(@PathVariable(value = "id") Long id, Map<String, Object> map, RedirectAttributes flash) {
 		Client client = null;
@@ -136,7 +162,9 @@ public class ClientController {
 		map.put("title", "Client edit");
 		return "form";
 	}
-
+	
+	//@Secured("ROLE_USER")
+	@PreAuthorize("hasRole('ROLE_USER')")
 	@GetMapping(value = "/view/{id}")
 	public String view(@PathVariable(value = "id") Long id, Map<String, Object> map, RedirectAttributes flash) {
 		Client client = clientService.findOne(id);
@@ -151,6 +179,7 @@ public class ClientController {
 		return "view";
 	}
 
+	@Secured({"ROLE_USER", "ROLE_ADMIN"})
 	@GetMapping(value = "/uploads/{file:.*}")
 	public ResponseEntity<Resource> viewPhoto(@PathVariable String file) {
 
@@ -167,6 +196,7 @@ public class ClientController {
 				.body(resource);
 	}
 
+	@Secured("ROLE_ADMIN")
 	@GetMapping(value = "/delete/{id}")
 	public String delete(@PathVariable(value = "id") Long id, RedirectAttributes flash) {
 
@@ -197,14 +227,15 @@ public class ClientController {
 
 		Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
 		
-		for (GrantedAuthority a : authorities) {
-			if (role.equals(a.getAuthority())) {
-				logger.info("Tu rol es: ".concat(a.getAuthority()));
-				return true;
-			}
-
-		}
-		return false;
+		return authorities.contains(new SimpleGrantedAuthority(role));
+//		for (GrantedAuthority a : authorities) {
+//			if (role.equals(a.getAuthority())) {
+//				logger.info("Tu rol es: ".concat(a.getAuthority()));
+//				return true;
+//			}
+//
+//		}
+//		return false;
 
 	}
 }
