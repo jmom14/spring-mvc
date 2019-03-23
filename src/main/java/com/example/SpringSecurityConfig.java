@@ -17,6 +17,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.auth.handler.LoginSuccessHandler;
+import com.example.service.JpaUserDetailsService;
 
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @Configuration
@@ -30,6 +31,9 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
 	private BCryptPasswordEncoder  passwordEncoder;
+	
+	@Autowired
+	private JpaUserDetailsService userService;
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -54,14 +58,17 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder build) throws Exception {
 
+		build.userDetailsService(userService)
+		.passwordEncoder(passwordEncoder);
 		
-			
-		build.jdbcAuthentication()
-		.dataSource(datasource)
-		.passwordEncoder(passwordEncoder)
-		.usersByUsernameQuery("select username, password, enabled from users where username =?")
-		.authoritiesByUsernameQuery("select u.username, a.authority from authorities a inner join users u on (a.user_id = u.id) where username = ?");
-		
+		/*
+		 * Authentication with datasource build.jdbcAuthentication()
+		 * .dataSource(datasource) .passwordEncoder(passwordEncoder)
+		 * .usersByUsernameQuery("select username, password, enabled from users where username =?"
+		 * )
+		 * .authoritiesByUsernameQuery("select u.username, a.authority from authorities a inner join users u on (a.user_id = u.id) where username = ?"
+		 * );
+		 */
 		
 		/*
 		 * PasswordEncoder encoder =
