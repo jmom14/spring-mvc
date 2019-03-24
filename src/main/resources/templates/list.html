@@ -13,6 +13,10 @@
 			<div class="card-header" th:text="${title}"></div>
 			<div class="card-body">
 
+			<h4 class="card-title">
+				<a class="btn btn-success btn-xs float-right" th:href="@{'/list/'(format=csv)}">CSV</a>
+				<a class="btn btn-outline-success btn-xs float-right" th:href="@{'/list/'(format=xml)}">XML</a>
+			</h4>
 				<table class="table table-hover table-sm">
 					<thead class="thead-dark">
 						<tr class="row">

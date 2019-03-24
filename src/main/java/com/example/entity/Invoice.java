@@ -19,7 +19,9 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
+import javax.xml.bind.annotation.XmlTransient;
 
 
 @Entity
@@ -92,6 +94,7 @@ public class Invoice implements Serializable{
 		this.createAt = createAt;
 	}
 
+	@XmlTransient
 	public Client getClient() {
 		return client;
 	}
