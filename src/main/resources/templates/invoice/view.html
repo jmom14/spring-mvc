@@ -10,9 +10,13 @@
 		<div class="card bg-light">
 			<div class="card-header" th:text="${title}"></div>
 			<div class="card-body">
-
+				
+							
+				
 				<h4 class="card-title">
 					<a th:href="@{'/view/' + ${invoice.client.id}}" class="btn btn-light btn-xs">&laquo; Back</a>
+					<a class="btn btn-danger btn-xs float-right mx-2" th:href="@{'/invoice/view/' + ${invoice.id}(format=pdf)}">PDF</a>
+					<a class="btn btn-success btn-xs float-right" th:href="@{'/invoice/view/' + ${invoice.id}(format=xlsx)}">XLSX</a>
 				</h4>
 
 				<ul class="list-group my-2">

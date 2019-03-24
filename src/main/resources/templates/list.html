@@ -1,7 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymleaf.org"
-	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-	  
+<html xmlns:th="http://www.thymleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head th:replace="layout/layout :: head">
 </head>
 <body>
@@ -12,36 +11,42 @@
 	<div class="container py-4">
 		<div class="card bg-light">
 			<div class="card-header" th:text="${title}"></div>
-			<div class="card-body">		
+			<div class="card-body">
 
 				<table class="table table-hover table-sm">
 					<thead class="thead-dark">
 						<tr class="row">
 							<th sec:authorize="hasRole('ROLE_USER')" class="col-sm-1">Id</th>
-							<th class="col-sm-1">Name</th>
-							<th class="col-sm-2">Last name</th>
-							<th class="col-sm-3">E-mail</th>
-							<th class="col-sm-2">Created date</th>
-							<th sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1">Create invoice</th>
+							<th class="col-sm-1" th:text="#{text.cliente.nombre}">Name</th>
+							<th class="col-sm-2" th:text="#{text.cliente.apellido}">Last name</th>
+							<th class="col-sm-3" th:text="#{text.cliente.email}">E-mail</th>
+							<th class="col-sm-2" th:text="#{text.cliente.createAt}">Created date</th>
 							<th sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1">Edit</th>
+							<th sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1">Create invoice</th>
 							<th sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1">Delete</th>
 						</tr>
 					</thead>
 
 					<tbody>
 						<tr class="row" th:each="client: ${clients}">
-							<td sec:authorize="hasRole('ROLE_USER')" class="col-sm-1"><a th:href="@{/view/} + ${client.id}" th:text="${client.id}"></a></td>
+							<td sec:authorize="hasRole('ROLE_USER')" class="col-sm-1"><a th:href="@{/view/} + ${client.id}"
+								th:text="${client.id}"></a></td>
 							<td class="col-sm-1" th:text="${client.name}"></td>
 							<td class="col-sm-2" th:text="${client.lastName}"></td>
 							<td class="col-sm-3" th:text="${client.email}"></td>
 							<td class="col-sm-2" th:text="${client.createAt}"></td>
-							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-success btn-xs" th:href="@{'/invoice/form/' + ${client.id}}" th:text="'Create invoice'"></a></td>
-							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-primary btn-xs" th:href="@{/form/} + ${client.id}" th:text="Edit"></a></td>
-							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-danger btn-xs" th:href="@{/delete/} + ${client.id}" th:text="Delete"></a></td>
+							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-success btn-xs"
+								th:href="@{'/invoice/form/' + ${client.id}}" th:text="'Create invoice'"></a></td>
+							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-primary btn-xs"
+								th:href="@{/form/} + ${client.id}" th:text="Edit"></a></td>
+							<td sec:authorize="hasRole('ROLE_ADMIN')" class="col-sm-1"><a class="btn btn-danger btn-xs"
+								th:href="@{/delete/} + ${client.id}" th:text="Delete"
+								onclick="return confirm(document.getElementById('i18n_eliminar_cliente').innerHTML);"></a></td>
 						</tr>
 					</tbody>
 				</table>
-				<nav th:replace="paginator-nav :: paginator"></nav>
+				<nav th:replace="
+								paginator-nav ::paginator"></nav>
 			</div>
 
 		</div>
