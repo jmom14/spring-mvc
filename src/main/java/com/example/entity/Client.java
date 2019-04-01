@@ -21,6 +21,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Email;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 
 
@@ -59,6 +61,7 @@ public class Client implements Serializable{
 	private String photo;
 	
 	@OneToMany(mappedBy = "client",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JsonIgnore
 	private List<Invoice> invoices;
 	
 //	@PrePersist
