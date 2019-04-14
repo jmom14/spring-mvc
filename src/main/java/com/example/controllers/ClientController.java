@@ -3,6 +3,7 @@ package com.example.controllers;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +45,7 @@ import com.example.entity.Client;
 import com.example.service.IClientService;
 import com.example.service.IUploadFileService;
 import com.example.util.paginator.PageRender;
+import com.example.view.xml.ClientList;
 
 @Controller
 @SessionAttributes("client")
@@ -58,6 +61,15 @@ public class ClientController {
 	private MessageSource message;
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	/*
+	 * ClientList is a wrapper class to contain the object and be able to format to xml
+	 * */
+	@GetMapping(value =  "/list-rest")
+	public @ResponseBody ClientList listRest() {
+		
+		return  new ClientList(clientService.findAll());
+	}
 
 	@GetMapping(value = { "/list", "/" })
 	public String list(@RequestParam(value = "page", defaultValue = "0") int page, Model model, Authentication auth,

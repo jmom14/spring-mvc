@@ -23,6 +23,8 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 
 @Entity
 @Table(name = "invoices")
@@ -47,6 +49,7 @@ public class Invoice implements Serializable{
 	private Date createAt;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonBackReference
 	private Client client;
 	
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

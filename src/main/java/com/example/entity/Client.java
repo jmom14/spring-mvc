@@ -21,7 +21,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Email;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 
 
@@ -56,12 +57,13 @@ public class Client implements Serializable{
 	@Column(name="CREATE_AT")
 	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date createAt;
 	
 	private String photo;
 	
 	@OneToMany(mappedBy = "client",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JsonIgnore
+	@JsonManagedReference
 	private List<Invoice> invoices;
 	
 //	@PrePersist
