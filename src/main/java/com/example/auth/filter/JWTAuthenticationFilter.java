@@ -1,6 +1,7 @@
 package com.example.auth.filter;
 
 import java.io.IOException;
+import java.security.Key;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.util.Base64Utils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -45,7 +47,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 		String username = obtainUsername(request);
 		String password = obtainPassword(request);
-		
 
 		if (username != null && password != null) {
 			logger.info("username from request parameter (form-data): " + username);
@@ -53,7 +54,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		} else {
 			com.example.entity.User user = null;
 			try {
-				
+
 				user = new ObjectMapper().readValue(request.getInputStream(), com.example.entity.User.class);
 				username = user.getUsername();
 				password = user.getPassword();
@@ -76,16 +77,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authResult) throws IOException, ServletException {
-
-		SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+		Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+		// secretKeyFor(SignatureAlgorithm.HS512).
 		String username = ((User) authResult.getPrincipal()).getUsername();
 
 		Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
 		Claims claims = Jwts.claims();
 		claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
 
-		String token = Jwts.builder().setClaims(claims).setSubject(authResult.getName()).signWith(secretKey)
-				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 14000000L)).compact();
+		String token = Jwts.builder().setClaims(claims).setSubject(authResult.getName())
+				.signWith(Keys.secretKeyFor(SignatureAlgorithm.HS512)).setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + 14000000L)).compact();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("token", token);
@@ -96,6 +98,20 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		response.getWriter().write(new ObjectMapper().writeValueAsString(map));
 		response.setStatus(200);
 		response.setContentType("application/json");
+	}
+
+	@Override
+	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException failed) throws IOException, ServletException {
+		Map<String, Object> body = new HashMap<>();
+
+		body.put("message", "Error authenticating: username or password wrong");
+		body.put("error", failed.getMessage());
+
+		response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+		response.setStatus(401);
+		response.setContentType("application/json");
+
 	}
 
 }
