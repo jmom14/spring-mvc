@@ -1,18 +1,15 @@
 package com.example.auth.filter;
 
 import java.io.IOException;
-import java.security.Key;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import javax.xml.bind.DatatypeConverter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,12 +18,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.util.Base64Utils;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -77,17 +71,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authResult) throws IOException, ServletException {
-		Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-		// secretKeyFor(SignatureAlgorithm.HS512).
 		String username = ((User) authResult.getPrincipal()).getUsername();
-
 		Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
 		Claims claims = Jwts.claims();
 		claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
 
 		String token = Jwts.builder().setClaims(claims).setSubject(authResult.getName())
-				.signWith(Keys.secretKeyFor(SignatureAlgorithm.HS512)).setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 14000000L)).compact();
+				.signWith(
+						Keys.hmacShaKeyFor(DatatypeConverter.parseBase64Binary(
+								"secure.password.for.login.and.authenticate.and.should.be.secure.enough")),
+						SignatureAlgorithm.HS256)
+				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 14000000L)).compact();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("token", token);
@@ -111,7 +105,5 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		response.getWriter().write(new ObjectMapper().writeValueAsString(body));
 		response.setStatus(401);
 		response.setContentType("application/json");
-
 	}
-
 }
